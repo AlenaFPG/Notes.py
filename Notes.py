@@ -1,75 +1,94 @@
-class Note:
-    def __init__(self, title, content, creation_date):
-        self.title = title
-        self.content = content
-        self.creation_date = creation_date
-
 import json
+import datetime
 
-class NoteManager:
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self.notes = []
+class Заметка:
+    def __init__(self, заголовок, содержание, дата):
+        self.заголовок = заголовок
+        self.содержание = содержание
+        self.дата = дата
 
-    def load_notes(self):
-        with open(self.file_path, 'r') as file:
-            self.notes = json.load(file)
+    def сохранить_заметку(self):
+        with open('заметки.txt', 'a') as файл:
+            файл.write(f'{self.заголовок}n{self.содержание}n{self.дата}n---n')
 
-    def save_notes(self):
-        with open(self.file_path, 'w') as file:
-            json.dump(self.notes, file)
+    @staticmethod
+    def прочитать_список_заметок():
+        with open('заметки.txt', 'r') as файл:
+            заметки = файл.read().split('---')[:-1]
+        return [Заметка(заголовок.strip(), содержание.strip(), дата.strip()) for (заголовок, содержание, дата) in
+                (заметка.split('n', 1) for заметка in заметки)]
 
-    def add_note(self, note):
-        self.notes.append(note)
+    @staticmethod
+    def редактировать_заметку(заголовок, новое_содержание):
+        with open('заметки.txt', 'r') as файл:
+            заметки = файл.read().split('---')[:-1]
 
-    def edit_note(self, note_index, new_title, new_content):
-        self.notes[note_index].title = new_title
-        self.notes[note_index].content = new_content
+        измененные_заметки = []
+        for заметка in заметки:
+            текущий_заголовок, текущее_содержание = заметка.split('n', 1)
+            if текущий_заголовок.strip() == заголовок.strip():
+                заметка = f'{текущий_заголовок}n{новое_содержание}'
+            измененные_заметки.append(заметка.strip())
 
-    def delete_note(self, note_index):
-        del self.notes[note_index]
+        with open('заметки.txt', 'w') as файл:
+            файл.write('n---n'.join(измененные_заметки) + 'n---n')
 
-    if __name__ == "__main__":
+    @staticmethod
+    def удалить_заметку(заголовок):
+            with open('заметки.txt', 'r') as файл:
+                заметки = файл.read().split('---')[:-1]
 
-        while True:
-            print('Выберите дейтсиве: ')
-            print('1. Создать заметку')
-            print('2. Читать список заметов')
-            print('3. Редактировать заметку')
-            print('4. Удалить заметку')
-            print('5. Выйти')
+            оставленные_заметки = []
+            for заметка in заметки:
+                текущий_заголовок, _ = заметка.split('n', 1)
+                if текущий_заголовок.strip() != заголовок.strip():
+                    оставленные_заметки.append(заметка.strip())
 
-            выбор = input('Введите номер действия: ')
+            with open('заметки.txt', 'w') as файл:
+                файл.write('n---n'.join(оставленные_заметки) + 'n---n')
 
-            if выбор == '1':
-                title = input('Введите заголовок заметки: ')
-                content = input('Введите содержание заметки: ')
-                note = Note(title, content)
-                note.save_notes()
-                print('Заметка успешно создана')
+if __name__ == "__main__":
 
-            elif выбор == '2':
-                notes = Note.load_notes()
-                if notes:
-                    print('Список заметок: ')
-                    for i, note in enumerate(notes, 1):
-                        print(f'{i}. {note.title}')
-                else:
-                    print('Нет ни одной заметки')
+    while True:
+        print('Выберите действие: ')
+        print('1. Создать заметку')
+        print('2. Читать список заметок')
+        print('3. Редактировать заметку')
+        print('4. Удалить заметку')
+        print('5. Выйти')
 
-            elif выбор == '3':
-                title = input('Введите заголовок заметки, которую нужно отредактировать: ')
-                new_content = input('Введите новое содержание заметки: ')
-                Note.edit_note(title, new_content)
-                print('Заметка успешно отредактирована')
+        выбор = input('Введите номер действия: ')
 
-            elif выбор == '4':
-                title = input('Введите заголовок заметки, которую нужно удалить: ')
-                Note.delete_note(title)
-                print('Заметка успешно удалена')
+        if выбор == '1':
+            заголовок = input('Введите заголовок заметки: ')
+            содержание = input('Введите содержание заметки: ')
+            дата = input('Введите дату создания заметки: ')
+            заметка = Заметка(заголовок, содержание, дата)
+            заметка.сохранить_заметку()
+            print('Заметка успешно создана')
 
-            elif выбор == '5':
-                break
-
+        elif выбор == '2':
+            заметки = заметка.прочитать_список_заметок()
+            if заметки:
+                print('Список заметок: ')
+                for i, заметка in enumerate(заметки, 1):
+                    print(f'{i}.{заметка.заголовок}')
             else:
-                print('Неверный выбор')
+                print('Нет ни одной заметки')
+
+        elif выбор == '3':
+            заголовок = input('Введите заголовок заметки, которую нужно отредактировать: ')
+            новое_содержание = input('Введите новое содержание заметки: ')
+            Заметка.редактировать_заметку(заголовок, новое_содержание)
+            print('Заметка успешно отредактирована')
+
+        elif выбор == '4':
+            заголовок = input('Введите заголовок заметки, которую нужно удалить: ')
+            Заметка.удалить_заметку(заголовок)
+            print('Заметка успешно удалена')
+
+        elif выбор == '5':
+            break
+
+        else:
+            print('Неверный выбор')
